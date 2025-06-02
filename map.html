@@ -2,55 +2,48 @@
 <html>
 <head>
   <meta charset="utf-8" />
-  <title>MTB Trails Map</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MTBTrail Map</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
   <style>
-    html, body, #map { height: 100%; margin: 0; padding: 0; }
+    html, body, #map {
+      height: 100%;
+      margin: 0;
+      padding: 0;
+    }
   </style>
 </head>
 <body>
   <div id="map"></div>
-
   <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
   <script>
-    // Exemple de trails — à remplacer dynamiquement plus tard
-    const trails = [
-      {
-        name: "Trail de Nantes",
-        route: [
-          { lat: 47.2197, lng: -1.5526 },
-          { lat: 47.2200, lng: -1.5530 },
-          { lat: 47.2203, lng: -1.5534 }
-        ]
-      },
-      {
-        name: "Trail de Paris",
-        route: [
-          { lat: 48.8566, lng: 2.3522 },
-          { lat: 48.8570, lng: 2.3530 },
-          { lat: 48.8574, lng: 2.3540 }
-        ]
-      }
-    ];
+    const trail = {
+      name: "Paris → Nantes Trail",
+      route: [
+        { lat: 48.8566, lng: 2.3522 },   // Paris
+        { lat: 48.0, lng: 1.0 },         // Mi-chemin
+        { lat: 47.2184, lng: -1.5536 }   // Nantes
+      ]
+    };
 
-    const map = L.map('map').setView([47.2197, -1.5526], 6);
+    const map = L.map('map').setView([47.8, 0.4], 6); // vue centrée entre Paris et Nantes
 
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
       maxZoom: 19,
     }).addTo(map);
 
-    trails.forEach(trail => {
-      const latlngs = trail.route.map(coord => [coord.lat, coord.lng]);
+    // Affiche la ligne de l'itinéraire
+    const latlngs = trail.route.map(coord => [coord.lat, coord.lng]);
+    const polyline = L.polyline(latlngs, { color: 'blue' }).addTo(map);
 
-      const polyline = L.polyline(latlngs, { color: 'blue' }).addTo(map);
+    // Ajoute un marqueur au milieu du parcours
+    const midpoint = trail.route[Math.floor(trail.route.length / 2)];
+    const marker = L.marker([midpoint.lat, midpoint.lng]).addTo(map);
+    marker.bindPopup(trail.name);
 
-      const marker = L.marker(latlngs[0]).addTo(map);
-      marker.bindPopup(trail.name);
-
-      marker.on('click', () => {
-        window.parent.postMessage(trail.name, '*'); // Pour interaction avec FlutterFlow
-      });
+    // Interaction avec FlutterFlow (si utilisée)
+    marker.on('click', () => {
+      window.parent.postMessage(trail.name, '*');
     });
   </script>
 </body>
