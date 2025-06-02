@@ -4,7 +4,7 @@
   <meta charset="utf-8" />
   <title>MTBTrail Map</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
   <style>
     html, body, #map {
       height: 100%;
@@ -15,35 +15,37 @@
 </head>
 <body>
   <div id="map"></div>
-  <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
-  <script>
-    const trail = {
-      name: "Paris → Nantes Trail",
-      route: [
-        { lat: 48.8566, lng: 2.3522 },   // Paris
-        { lat: 48.0, lng: 1.0 },         // Mi-chemin
-        { lat: 47.2184, lng: -1.5536 }   // Nantes
-      ]
-    };
 
-    const map = L.map('map').setView([47.8, 0.4], 6); // vue centrée entre Paris et Nantes
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <script>
+    let map = L.map('map').setView([47.5, 2.5], 6);
 
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-      maxZoom: 19,
+      maxZoom: 18
     }).addTo(map);
 
-    // Affiche la ligne de l'itinéraire
-    const latlngs = trail.route.map(coord => [coord.lat, coord.lng]);
-    const polyline = L.polyline(latlngs, { color: 'blue' }).addTo(map);
+    // Fonction pour afficher les trails
+    function displayTrails(trails) {
+      trails.forEach(trail => {
+        const latlngs = trail.route.map(coord => [coord.lat, coord.lng]);
 
-    // Ajoute un marqueur au milieu du parcours
-    const midpoint = trail.route[Math.floor(trail.route.length / 2)];
-    const marker = L.marker([midpoint.lat, midpoint.lng]).addTo(map);
-    marker.bindPopup(trail.name);
+        L.polyline(latlngs, { color: 'blue' }).addTo(map);
+        const marker = L.marker(latlngs[0]).addTo(map).bindPopup(trail.name);
 
-    // Interaction avec FlutterFlow (si utilisée)
-    marker.on('click', () => {
-      window.parent.postMessage(trail.name, '*');
+        marker.on('click', () => {
+          window.parent.postMessage(trail.id, '*'); // Envoie l'ID du trail à FlutterFlow
+        });
+      });
+    }
+
+    // Écoute les messages envoyés depuis FlutterFlow
+    window.addEventListener('message', event => {
+      try {
+        const trails = JSON.parse(event.data);
+        displayTrails(trails);
+      } catch (e) {
+        console.error("Erreur de parsing : ", e);
+      }
     });
   </script>
 </body>
